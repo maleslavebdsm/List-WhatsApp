@@ -4,23 +4,116 @@
   <meta charset="UTF-8">
   <title>WhatsApp Number List</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: #e2e2e2; }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #121212; 
+      color: #e2e2e2;
+    }
     h1 { text-align: center; color: #fff; }
-    .lang-switch { text-align: center; margin-bottom: 15px; }
-    .lang-switch button { background:#333; color:#fff; border:none; padding:6px 12px; margin:0 4px; cursor:pointer; border-radius:4px; }
-    .lang-switch button.active { background:#00e676; color:#000; font-weight:bold; }
-    .box { background:#1e1e1e; padding:15px; margin-bottom:15px; border-radius:6px; box-shadow:0 0 10px rgba(0,255,0,0.05); }
-    input, select { width:100%; padding:10px; margin:6px 0; background:#111; border:1px solid #333; color:#fff; border-radius:4px; }
-    button { padding:10px 14px; border:none; border-radius:4px; cursor:pointer; font-weight:600; margin-top:10px; }
-    .btn-add { background:#00c853; color:#000; }
-    .btn-export { background:#424242; color:#fff; margin-left:5px; }
-    .btn-small { padding:4px 8px; font-size:12px; margin-right:4px; }
-    .btn-edit { background:#2979ff; color:#fff; }
-    .btn-delete { background:#d50000; color:#fff; }
-    table { width:100%; border-collapse:collapse; background:#1e1e1e; color:#fff; }
-    th, td { padding:10px; border:1px solid #333; text-align:center; }
-    th { background:#272727; }
-    a { color:#00e676; text-decoration:none; }
+    .lang-switch { 
+      text-align: center; 
+      margin-bottom: 15px; 
+    }
+    .lang-switch button {
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      margin: 0 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .lang-switch button.active {
+      background: #00e676;
+      color: #000;
+    }
+    .box { 
+      background: #1e1e1e; 
+      padding: 15px; 
+      margin-bottom: 15px; 
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,255,0,0.05);
+    }
+    input, select {
+      width: 100%; 
+      padding: 10px; 
+      margin: 6px 0; 
+      box-sizing: border-box;
+      background: #111; 
+      border: 1px solid #333; 
+      color: #fff; 
+      border-radius: 4px;
+    }
+    input:focus, select:focus {
+      outline: none; 
+      border-color: #0f0;
+    }
+    button {
+      padding: 10px 14px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-add {
+      background: #00c853;
+      color: #000;
+    }
+    .btn-add:hover {
+      background: #00e676;
+    }
+    .btn-export {
+      background: #424242;
+      color: #fff;
+      margin-left: 5px;
+    }
+    .btn-export:hover {
+      background: #616161;
+    }
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 12px;
+      margin-right: 4px;
+    }
+    .btn-edit {
+      background: #2979ff;
+      color: #fff;
+    }
+    .btn-edit:hover {
+      background: #448aff;
+    }
+    .btn-delete {
+      background: #d50000;
+      color: #fff;
+    }
+    .btn-delete:hover {
+      background: #ff1744;
+    }
+    table {
+      width: 100%; 
+      border-collapse: collapse; 
+      background: #1e1e1e;
+      color: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #333;
+      text-align: center;
+    }
+    th { 
+      background: #272727; 
+      font-weight: bold;
+    }
+    a { 
+      color: #00e676; 
+      text-decoration: none;
+    }
+    a:hover { 
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -90,7 +183,10 @@
       thChat: "Chat",
       thActions: "Actions",
       edit: "Edit",
-      del: "Delete"
+      del: "Delete",
+      required: "Name and Number are required!",
+      confirmDelete: "Delete this entry?",
+      noData: "No data to export"
     },
     jp: {
       title: "WhatsApp番号リスト",
@@ -109,7 +205,10 @@
       thChat: "チャット",
       thActions: "操作",
       edit: "編集",
-      del: "削除"
+      del: "削除",
+      required: "名前と番号は必須です。",
+      confirmDelete: "このデータを削除しますか？",
+      noData: "データがありません"
     }
   };
 
@@ -117,7 +216,8 @@
   const btnAdd = document.getElementById('btnAdd');
 
   function setToday() {
-    dateInput.value = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
   }
 
   function switchLang(lang) {
@@ -129,7 +229,7 @@
     document.getElementById('lbl_number').textContent = t.number;
     document.getElementById('lbl_status').textContent = t.status;
     document.getElementById('lbl_date').textContent = t.date;
-    document.getElementById('btnAdd').textContent = editIndex !== null ? t.save : t.add;
+    btnAdd.textContent = editIndex !== null ? t.save : t.add;
     document.getElementById('btnExport').textContent = t.export;
 
     document.getElementById('th_no').textContent = t.thNo;
@@ -140,8 +240,8 @@
     document.getElementById('th_chat').textContent = t.thChat;
     document.getElementById('th_actions').textContent = t.thActions;
 
-    document.getElementById('btnEN').classList.toggle('active', lang==='en');
-    document.getElementById('btnJP').classList.toggle('active', lang==='jp');
+    document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+    document.getElementById('btnJP').classList.toggle('active', lang === 'jp');
 
     renderTable();
   }
@@ -152,7 +252,14 @@
 
   function loadData() {
     const saved = localStorage.getItem('waDataList');
-    if (saved) dataList = JSON.parse(saved);
+    if (saved) {
+      try {
+        dataList = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved data', e);
+        dataList = [];
+      }
+    }
     renderTable();
   }
 
@@ -163,13 +270,15 @@
 
     dataList.forEach((item, i) => {
       const tr = document.createElement('tr');
+      const waNumberForLink = (item.number || '').replace('+', '');
+
       tr.innerHTML = `
-        <td>${i+1}</td>
+        <td>${i + 1}</td>
         <td>${item.name}</td>
         <td>${item.number}</td>
         <td>${item.status}</td>
         <td>${item.date}</td>
-        <td><a href="https://wa.me/${item.number.replace('+','')}" target="_blank">${t.thChat}</a></td>
+        <td><a href="https://wa.me/${waNumberForLink}" target="_blank">${t.thChat}</a></td>
         <td>
           <button class="btn-small btn-edit" onclick="editNumber(${i})">${t.edit}</button>
           <button class="btn-small btn-delete" onclick="deleteNumber(${i})">${t.del}</button>
@@ -180,59 +289,102 @@
   }
 
   function addOrUpdateNumber() {
-    const name = name.value.trim();
-    let number = document.getElementById('number').value.trim();
-    const status = document.getElementById('status').value;
-    const date = dateInput.value;
+    const nameInput = document.getElementById('name');
+    const numberInput = document.getElementById('number');
+    const statusSelect = document.getElementById('status');
 
-    if (!name || !number) return alert("Required!");
+    const nameVal = nameInput.value.trim();
+    let numberVal = numberInput.value.trim();
+    const statusVal = statusSelect.value;
+    const dateVal = dateInput.value;
 
-    if (!number.startsWith('+')) number = '+' + number;
+    if (!nameVal || !numberVal) {
+      alert(texts[currentLang].required);
+      return;
+    }
 
-    const item = { name, number, status, date };
+    if (!numberVal.startsWith('+')) {
+      numberVal = '+' + numberVal;
+    }
+
+    const item = {
+      name: nameVal,
+      number: numberVal,
+      status: statusVal,
+      date: dateVal
+    };
 
     if (editIndex !== null) {
       dataList[editIndex] = item;
       editIndex = null;
-    } else dataList.push(item);
+    } else {
+      dataList.push(item);
+    }
 
-    saveData();
-    name = '';
-    number = '';
-    setToday();
-    switchLang(currentLang);
-  }
-
-  function editNumber(i) {
-    const item = dataList[i];
-    document.getElementById('name').value = item.name;
-    document.getElementById('number').value = item.number.replace('+','');
-    document.getElementById('status').value = item.status;
-    dateInput.value = item.date;
-    editIndex = i;
-    btnAdd.textContent = texts[currentLang].save;
-    window.scrollTo({ top:0, behavior:'smooth' });
-  }
-
-  function deleteNumber(i) {
-    if (!confirm("Delete?")) return;
-    dataList.splice(i,1);
     saveData();
     renderTable();
+
+    // reset input
+    nameInput.value = '';
+    numberInput.value = '';
+    setToday();
+    btnAdd.textContent = texts[currentLang].add;
+  }
+
+  function editNumber(index) {
+    const item = dataList[index];
+    if (!item) return;
+
+    document.getElementById('name').value = item.name || '';
+    document.getElementById('number').value = (item.number || '').replace('+', '');
+    document.getElementById('status').value = item.status || 'Active';
+    dateInput.value = item.date || new Date().toISOString().split('T')[0];
+
+    editIndex = index;
+    btnAdd.textContent = texts[currentLang].save;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function deleteNumber(index) {
+    if (!confirm(texts[currentLang].confirmDelete)) return;
+
+    dataList.splice(index, 1);
+    saveData();
+    renderTable();
+
+    if (editIndex === index) {
+      editIndex = null;
+      btnAdd.textContent = texts[currentLang].add;
+      document.getElementById('name').value = '';
+      document.getElementById('number').value = '';
+      setToday();
+    }
   }
 
   function exportTxt() {
-    if (!dataList.length) return alert("No data");
+    if (dataList.length === 0) {
+      alert(texts[currentLang].noData);
+      return;
+    }
 
-    const lines = dataList.map(x => `${x.name} | ${x.number} | ${x.status} | ${x.date}`);
-    const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
+    const lines = dataList.map(item =>
+      `${item.name} | ${item.number} | ${item.status} | ${item.date}`
+    );
+
+    const text = lines.join('\n');
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a'); a.href = url;
-    a.download = "whatsapp_numbers.txt"; a.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'whatsapp_numbers.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 
+  // init
   setToday();
   loadData();
   switchLang('en');
