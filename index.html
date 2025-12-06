@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp Number List</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: #e2e2e2; }
+    h1 { text-align: center; color: #fff; }
+    .lang-switch { text-align: center; margin-bottom: 15px; }
+    .lang-switch button { background:#333; color:#fff; border:none; padding:6px 12px; margin:0 4px; cursor:pointer; border-radius:4px; }
+    .lang-switch button.active { background:#00e676; color:#000; font-weight:bold; }
+    .box { background:#1e1e1e; padding:15px; margin-bottom:15px; border-radius:6px; box-shadow:0 0 10px rgba(0,255,0,0.05); }
+    input, select { width:100%; padding:10px; margin:6px 0; background:#111; border:1px solid #333; color:#fff; border-radius:4px; }
+    button { padding:10px 14px; border:none; border-radius:4px; cursor:pointer; font-weight:600; margin-top:10px; }
+    .btn-add { background:#00c853; color:#000; }
+    .btn-export { background:#424242; color:#fff; margin-left:5px; }
+    .btn-small { padding:4px 8px; font-size:12px; margin-right:4px; }
+    .btn-edit { background:#2979ff; color:#fff; }
+    .btn-delete { background:#d50000; color:#fff; }
+    table { width:100%; border-collapse:collapse; background:#1e1e1e; color:#fff; }
+    th, td { padding:10px; border:1px solid #333; text-align:center; }
+    th { background:#272727; }
+    a { color:#00e676; text-decoration:none; }
+  </style>
+</head>
+<body>
+
+<h1 id="title">WhatsApp Number List</h1>
+
+<div class="lang-switch">
+  <button id="btnEN" class="active" onclick="switchLang('en')">EN</button>
+  <button id="btnJP" onclick="switchLang('jp')">JP</button>
+</div>
+
+<div class="box">
+  <label id="lbl_name">Name / Label</label>
+  <input type="text" id="name" placeholder="Number 1 / Promo / etc.">
+
+  <label id="lbl_number">WhatsApp Number (without +)</label>
+  <input type="text" id="number" placeholder="6281234567890">
+
+  <label id="lbl_status">Status</label>
+  <select id="status">
+    <option value="Active">Active</option>
+    <option value="Inactive">Inactive</option>
+  </select>
+
+  <label id="lbl_date">Activation Date</label>
+  <input type="date" id="date">
+
+  <button class="btn-add" id="btnAdd" onclick="addOrUpdateNumber()">+ Add Number</button>
+  <button class="btn-export" id="btnExport" onclick="exportTxt()">Export TXT</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th id="th_no">#</th>
+      <th id="th_name">Name</th>
+      <th id="th_number">Number</th>
+      <th id="th_status">Status</th>
+      <th id="th_date">Date</th>
+      <th id="th_chat">Chat</th>
+      <th id="th_actions">Actions</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+  let dataList = [];
+  let editIndex = null;
+  let currentLang = 'en';
+
+  const texts = {
+    en: {
+      title: "WhatsApp Number List",
+      name: "Name / Label",
+      number: "WhatsApp Number (without +)",
+      status: "Status",
+      date: "Activation Date",
+      add: "+ Add Number",
+      save: "Save Changes",
+      export: "Export TXT",
+      thNo: "#",
+      thName: "Name",
+      thNumber: "Number",
+      thStatus: "Status",
+      thDate: "Date",
+      thChat: "Chat",
+      thActions: "Actions",
+      edit: "Edit",
+      del: "Delete"
+    },
+    jp: {
+      title: "WhatsApp番号リスト",
+      name: "名前 / ラベル",
+      number: "WhatsApp番号（+なし）",
+      status: "ステータス",
+      date: "登録日",
+      add: "+ 追加",
+      save: "変更を保存",
+      export: "TXT出力",
+      thNo: "番号",
+      thName: "名前",
+      thNumber: "番号",
+      thStatus: "状態",
+      thDate: "日付",
+      thChat: "チャット",
+      thActions: "操作",
+      edit: "編集",
+      del: "削除"
+    }
+  };
+
+  const dateInput = document.getElementById('date');
+  const btnAdd = document.getElementById('btnAdd');
+
+  function setToday() {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  function switchLang(lang) {
+    currentLang = lang;
+    const t = texts[lang];
+
+    document.getElementById('title').textContent = t.title;
+    document.getElementById('lbl_name').textContent = t.name;
+    document.getElementById('lbl_number').textContent = t.number;
+    document.getElementById('lbl_status').textContent = t.status;
+    document.getElementById('lbl_date').textContent = t.date;
+    document.getElementById('btnAdd').textContent = editIndex !== null ? t.save : t.add;
+    document.getElementById('btnExport').textContent = t.export;
+
+    document.getElementById('th_no').textContent = t.thNo;
+    document.getElementById('th_name').textContent = t.thName;
+    document.getElementById('th_number').textContent = t.thNumber;
+    document.getElementById('th_status').textContent = t.thStatus;
+    document.getElementById('th_date').textContent = t.thDate;
+    document.getElementById('th_chat').textContent = t.thChat;
+    document.getElementById('th_actions').textContent = t.thActions;
+
+    document.getElementById('btnEN').classList.toggle('active', lang==='en');
+    document.getElementById('btnJP').classList.toggle('active', lang==='jp');
+
+    renderTable();
+  }
+
+  function saveData() {
+    localStorage.setItem('waDataList', JSON.stringify(dataList));
+  }
+
+  function loadData() {
+    const saved = localStorage.getItem('waDataList');
+    if (saved) dataList = JSON.parse(saved);
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    const t = texts[currentLang];
+
+    dataList.forEach((item, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${item.name}</td>
+        <td>${item.number}</td>
+        <td>${item.status}</td>
+        <td>${item.date}</td>
+        <td><a href="https://wa.me/${item.number.replace('+','')}" target="_blank">${t.thChat}</a></td>
+        <td>
+          <button class="btn-small btn-edit" onclick="editNumber(${i})">${t.edit}</button>
+          <button class="btn-small btn-delete" onclick="deleteNumber(${i})">${t.del}</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addOrUpdateNumber() {
+    const name = name.value.trim();
+    let number = document.getElementById('number').value.trim();
+    const status = document.getElementById('status').value;
+    const date = dateInput.value;
+
+    if (!name || !number) return alert("Required!");
+
+    if (!number.startsWith('+')) number = '+' + number;
+
+    const item = { name, number, status, date };
+
+    if (editIndex !== null) {
+      dataList[editIndex] = item;
+      editIndex = null;
+    } else dataList.push(item);
+
+    saveData();
+    name = '';
+    number = '';
+    setToday();
+    switchLang(currentLang);
+  }
+
+  function editNumber(i) {
+    const item = dataList[i];
+    document.getElementById('name').value = item.name;
+    document.getElementById('number').value = item.number.replace('+','');
+    document.getElementById('status').value = item.status;
+    dateInput.value = item.date;
+    editIndex = i;
+    btnAdd.textContent = texts[currentLang].save;
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function deleteNumber(i) {
+    if (!confirm("Delete?")) return;
+    dataList.splice(i,1);
+    saveData();
+    renderTable();
+  }
+
+  function exportTxt() {
+    if (!dataList.length) return alert("No data");
+
+    const lines = dataList.map(x => `${x.name} | ${x.number} | ${x.status} | ${x.date}`);
+    const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a'); a.href = url;
+    a.download = "whatsapp_numbers.txt"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  setToday();
+  loadData();
+  switchLang('en');
+</script>
+
+</body>
+</html>
